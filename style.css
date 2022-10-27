@@ -86,3 +86,6 @@ td > span{
 .record > h3{
     margin:10px 15px 15px 10px;
 }
+.record > h4 {
+    margin-top^: 5px;
+}
