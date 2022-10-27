@@ -54,7 +54,7 @@
       let gameOver // вынесенная функция для того чтобы можно было из внешнего скрипта объявлять gameOver
       let set // вынесенный сет необходимый для проверки отсутсвия победы во внешнем скрипте
       let counterBack // вынесенный счетчик бомб необходимый для проверки отсутсвия победы во внешнем скрипте
-      let flag = true // флаг показывающий было ли поражение в прошлой игре при переходе к следующей
+      let flag
       let counterForWinner = 1
       let result
       function superMegaMainFunc(row,column,numberBomb,container,funcForGameOver,flagForGameOver,counterWinner) {
@@ -95,7 +95,7 @@
             }
 
             let probability = random(1,100)  // возвращает псевдо случайное число от 1 до 100
-            if(probability < 10) { // вероятность появления бомбы в ячейке 10%
+            if(probability < 5) { // вероятность появления бомбы в ячейке 10%
               if(td.lastElementChild) continue // если уже есть бомба пропускаем такую ячейку
               td.innerHTML = '<span>10</span>' // добавляем бомбу
               counterForBomb++ // увеличиваем счетчик
@@ -195,7 +195,7 @@
             let innerRow = row
             let innerColumn = column
             let innerNumberBomb = numberBomb
-            flag = true
+            flag = false
             seconds.textContent = '00'
             minutes.textContent = '00'
             container.remove()
@@ -203,8 +203,7 @@
             body.prepend(div)
             div.classList.add('container')
             div.id = 'container'
-            superMegaMainFunc(innerRow,innerColumn,innerNumberBomb,div,gameOver,flag,counterForWinner)
-            // //
+            superMegaMainFunc(innerRow,innerColumn,innerNumberBomb,div,gameOver,counterForWinner)
           } 
           else {
             for(let td of tds) { // если подорвался то окрываются все оставшиеся мины
@@ -216,7 +215,8 @@
             if(td.children.length == 1) { // если флаг был выбран неправильно
               if(td.lastElementChild.classList.contains('bomb')) {
                 td.lastElementChild.remove()
-                td.textContent = '00' // доработка: ячейки не должны расширяться при добавлении данного значения
+                td.textContent = '10' // доработка: ячейки не должны расширяться при добавлении данного значения
+                td.style.textDecoration = 'line-through'
               }
             }
           }
@@ -245,115 +245,163 @@
           if(!target) return
           if(!container.contains(target)) return
           if(target.lastElementChild) {
-            if(target.lastElementChild.classList.contains('bomb')) return
+            if(target.lastElementChild.classList.contains('bomb')) return // если ячейка помечена как бомба клик не реагирует
             target.lastElementChild.remove() // по клику на ячейку открывается скрывающий элемент
           }
           
+            if(target.textContent == '0') {
+              let counterRow = 0
+              let counterColumn = 0
 
-         
-          if(target.textContent == '0') {
-            let counterRow = 0
-            let counterColumn = 0
+              for(let tr of trs) { // узнаем номер ряда выбранной ячейки
+                counterRow++
+                if(target.parentNode == tr) {
+                  break // прекращаем цикл когда цель найдена
+                }
+              }
+              for(let td of tds) { // узнаем номер столбца выбранной ячейки
+                counterColumn++
+                if(target == td) {
+                  counterColumn = counterColumn - (counterRow - 1) * column
+                  break // прекращаем цикл когда цель найдена
+                }
+              }
 
-            for(let tr of trs) { // узнаем номер ряда выбранной ячейки
-              counterRow++
-              if(target.parentNode == tr) {
-                break // прекращаем цикл когда цель найдена
-              }
-            }
-            for(let td of tds) { // узнаем номер столбца выбранной ячейки
-              counterColumn++
-              if(target == td) {
-                counterColumn = counterColumn - (counterRow - 1) * column
-                break // прекращаем цикл когда цель найдена
-              }
-            }
-            
-            if(trs[counterRow]) { // обрабатываем наличие этого ряда
-              if(trs[counterRow].children[counterColumn]){ // есть ли вообще такая ячейка в этом ряду
-                if(trs[counterRow].children[counterColumn].lastElementChild) { // есть ли дочерний элемент(для проверки на наличие класса у этой ячейки)
-                  if(!(trs[counterRow].children[counterColumn].lastElementChild.classList.contains('bomb'))) { // если нет класса "бомба" продолжаем
-                    trs[counterRow].children[counterColumn].lastElementChild.remove() // обработка нижнего правого элемента
+                function test(purposeRow,purposeColumn) {
+                  
+                  if(trs[purposeRow]) { // обрабатываем наличие этого ряда
+                  if(trs[purposeRow].children[purposeColumn]){ // есть ли вообще такая ячейка в этом ряду
+                    if(trs[purposeRow].children[purposeColumn].lastElementChild) { // есть ли дочерний элемент(для проверки на наличие класса у этой ячейки)
+                      if(!(trs[purposeRow].children[purposeColumn].lastElementChild.classList.contains('bomb'))) { // если нет класса "бомба" продолжаем
+                        trs[purposeRow].children[purposeColumn].lastElementChild.remove() // обработка нижнего правого элемента
+
+                        if(trs[purposeRow].children[purposeColumn].textContent == '0') {
+                          let newCounterRow = purposeRow + 1
+                          let newCounterColumn = purposeColumn + 1
+                          test(newCounterRow,newCounterColumn)  // обработка нижнего правого элемента для полного открытия свободных ячеек
+                        }
+                      }
+                    }
+                  }
+
+                  if(trs[purposeRow].children[purposeColumn - 1]) { // обработка нижнего элемента
+                    if(trs[purposeRow].children[purposeColumn - 1].lastElementChild) {
+                      if((!trs[purposeRow].children[purposeColumn - 1].lastElementChild.classList.contains('bomb'))) {
+                        trs[purposeRow].children[purposeColumn - 1].lastElementChild.remove()
+
+                        if(trs[purposeRow].children[purposeColumn - 1].textContent == '0') {
+                          let newCounterRow = purposeRow + 1
+                          let newCounterColumn = purposeColumn
+                          test(newCounterRow,newCounterColumn) // обработка нижнего элемента
+                        }
+                      }
+                    }
+                  }
+
+                  if(trs[purposeRow].children[purposeColumn - 2]) { // обработка нижнего левого элемента
+                    if(trs[purposeRow].children[purposeColumn - 2].lastElementChild) {
+                      if(!(trs[purposeRow].children[purposeColumn - 2].lastElementChild.classList.contains('bomb'))) {
+                        trs[purposeRow].children[purposeColumn - 2].lastElementChild.remove()
+
+                        if(trs[purposeRow].children[purposeColumn - 2].textContent == '0') {
+                          let newCounterRow = purposeRow + 1
+                          let newCounterColumn = purposeColumn - 1
+                          test(newCounterRow,newCounterColumn) // обработка нижнего левого элемента
+                        }
+                      }
+                    }
+                  }
+                }
+                
+
+                if(trs[purposeRow - 1]) {
+                  if(trs[purposeRow - 1].children[purposeColumn - 2]) { // обработка левого элемента
+                    if(trs[purposeRow - 1].children[purposeColumn - 2].lastElementChild) {
+                      if(!(trs[purposeRow - 1].children[purposeColumn - 2].lastElementChild.classList.contains('bomb'))) {
+                        trs[purposeRow - 1].children[purposeColumn - 2].lastElementChild.remove()
+
+                        if(trs[purposeRow - 1].children[purposeColumn - 2].textContent == '0') {
+                          let newCounterRow = purposeRow
+                          let newCounterColumn = purposeColumn - 1
+                          test(newCounterRow,newCounterColumn) // обработка левого элемента
+                        }
+                      }
+                    }
+                  }
+                
+
+                  if(trs[purposeRow - 1].children[purposeColumn]) { // обработка правого элемента
+                    if(trs[purposeRow - 1].children[purposeColumn].lastElementChild) {
+                      if(!(trs[purposeRow - 1].children[purposeColumn].lastElementChild.classList.contains('bomb'))) {
+                        trs[purposeRow - 1].children[purposeColumn].lastElementChild.remove()
+
+                        if(trs[purposeRow - 1].children[purposeColumn].textContent == '0') {
+                          let newCounterRow = purposeRow
+                          let newCounterColumn = purposeColumn + 1
+                          test(newCounterRow,newCounterColumn) // обработка правого элемента
+                        }
+                      }
+                    }
+                  }
+                }
+                
+                
+                if(trs[purposeRow - 2]) {
+                  if(trs[purposeRow - 2].children[purposeColumn - 2]) { // обработка верхнего левого элемента
+                    if(trs[purposeRow - 2].children[purposeColumn - 2].lastElementChild) {
+                      if(!(trs[purposeRow - 2].children[purposeColumn - 2].lastElementChild.classList.contains('bomb'))) {
+                        trs[purposeRow - 2].children[purposeColumn - 2].lastElementChild.remove()
+
+                        if(trs[purposeRow - 2].children[purposeColumn - 2].textContent == '0') {
+                          let newCounterRow = purposeRow - 1
+                          let newCounterColumn = purposeColumn - 1
+                          test(newCounterRow,newCounterColumn) // обработка верхнего левого элемента
+                        }
+                      }
+                    }
+                  }
+              
+                
+                  if(trs[purposeRow - 2].children[purposeColumn - 1]) { // обработка верхнего элемента
+                    if(trs[purposeRow - 2].children[purposeColumn - 1].lastElementChild) {
+                      if(!(trs[purposeRow - 2].children[purposeColumn - 1].lastElementChild.classList.contains('bomb'))) {
+                        trs[purposeRow - 2].children[purposeColumn - 1].lastElementChild.remove()
+
+                        if(trs[purposeRow - 2].children[purposeColumn - 1].textContent == '0') {
+                          let newCounterRow = purposeRow - 1
+                          let newCounterColumn = purposeColumn
+                          test(newCounterRow,newCounterColumn) // обработка верхнего элемента
+                        }
+                      }
+                    }
+                  }
+
+                  if(trs[purposeRow - 2].children[purposeColumn]) { // обработка верхнего правого элемента
+                    if(trs[purposeRow - 2].children[purposeColumn].lastElementChild) {
+                      if(!(trs[purposeRow - 2].children[purposeColumn].lastElementChild.classList.contains('bomb'))) {
+                        trs[purposeRow - 2].children[purposeColumn].lastElementChild.remove()
+
+                        if(trs[purposeRow - 2].children[purposeColumn].textContent == '0') {
+                          let newCounterRow = purposeRow - 1
+                          let newCounterColumn = purposeColumn + 1
+                          test(newCounterRow,newCounterColumn) // обработка верхнего правого элемента
+                        }
+                      }
+                    }
                   }
                 }
               }
+
+              test(counterRow,counterColumn)
+            }
           
+            if(target.textContent == '10') { // если попали на бомбу то подрыв
+              gameOver()
 
-              if(trs[counterRow].children[counterColumn - 1]) { // обработка нижнего элемента
-                if(trs[counterRow].children[counterColumn - 1].lastElementChild) {
-                  if((!trs[counterRow].children[counterColumn - 1].lastElementChild.classList.contains('bomb'))) {
-                    trs[counterRow].children[counterColumn - 1].lastElementChild.remove()
-                  }
-                }
-              }
-
-              if(trs[counterRow].children[counterColumn - 2]) { // обработка нижнего левого элемента
-                if(trs[counterRow].children[counterColumn - 2].lastElementChild) {
-                  if(!(trs[counterRow].children[counterColumn - 2].lastElementChild.classList.contains('bomb'))) {
-                    trs[counterRow].children[counterColumn - 2].lastElementChild.remove()
-                  }
-                }
-              }
             }
-            
-
-            if(trs[counterRow - 1]) {
-              if(trs[counterRow - 1].children[counterColumn - 2]) { // обработка левого элемента
-                if(trs[counterRow - 1].children[counterColumn - 2].lastElementChild) {
-                  if(!(trs[counterRow - 1].children[counterColumn - 2].lastElementChild.classList.contains('bomb'))) {
-                    trs[counterRow - 1].children[counterColumn - 2].lastElementChild.remove()
-                  }
-                }
-              }
-            
-
-              if(trs[counterRow - 1].children[counterColumn]) { // обработка правого элемента
-                if(trs[counterRow - 1].children[counterColumn].lastElementChild) {
-                  if(!(trs[counterRow - 1].children[counterColumn].lastElementChild.classList.contains('bomb'))) {
-                    trs[counterRow - 1].children[counterColumn].lastElementChild.remove()
-                  }
-                }
-              }
-            }
-            
-            
-            if(trs[counterRow - 2]) {
-              if(trs[counterRow - 2].children[counterColumn - 2]) { // обработка верхнего левого элемента
-                if(trs[counterRow - 2].children[counterColumn - 2].lastElementChild) {
-                  if(!(trs[counterRow - 2].children[counterColumn - 2].lastElementChild.classList.contains('bomb'))) {
-                    trs[counterRow - 2].children[counterColumn - 2].lastElementChild.remove()
-                  }
-                }
-              }
-          
-            
-              if(trs[counterRow - 2].children[counterColumn - 1]) { // обработка верхнего элемента
-                if(trs[counterRow - 2].children[counterColumn - 1].lastElementChild) {
-                  if(!(trs[counterRow - 2].children[counterColumn - 1].lastElementChild.classList.contains('bomb'))) {
-                    trs[counterRow - 2].children[counterColumn - 1].lastElementChild.remove()
-                  }
-                }
-              }
-
-              if(trs[counterRow - 2].children[counterColumn]) { // обработка верхнего правого элемента
-                if(trs[counterRow - 2].children[counterColumn].lastElementChild) {
-                  if(!(trs[counterRow - 2].children[counterColumn].lastElementChild.classList.contains('bomb'))) {
-                    trs[counterRow - 2].children[counterColumn].lastElementChild.remove()
-                  }
-                }
-              }
-            }
-          }
-          
-          if(target.textContent == '10') { // если попали на бомбу то подрыв
-            gameOver()
-            flag = false
-            console.log(flag)
-          }
-        
           })
         }
-        addListenerForRemoveElementAndOpenEmptyElement()// доработать открытие пустых ячеек
+        addListenerForRemoveElementAndOpenEmptyElement()
         
         function addCounter() {
           document.addEventListener('click', function func3(event) { // по клику на ячейку запускается счетчик
@@ -451,14 +499,14 @@
         addColorForNumber()
       }
 
-   superMegaMainFunc(row,column,numberBomb,container,gameOver,flag,counterForWinner)
+   superMegaMainFunc(row,column,numberBomb,container,gameOver,counterForWinner)
 
     function addRadioButtons() {
       
       radio1.addEventListener('click', function() {
         let result = confirm('if you will change the level game is over. Do you want to do it?')
         if(result) {
-          helpForRadioButtons(8,8,10)
+          helpForRadioButtons(9,9,10,result)
         } else {
           this.checked = false 
         }
@@ -466,7 +514,7 @@
       radio2.addEventListener('click', function() {
         let result = confirm('if you will change the level game is over. Do you want to do it?')
         if(result) {
-        helpForRadioButtons(16,16,40)
+        helpForRadioButtons(16,16,40,result)
         }
         else {
           this.checked = false
@@ -475,7 +523,7 @@
       radio3.addEventListener('click', function() {
         let result = confirm('if you will change the level game is over. Do you want to do it?')
         if(result) {
-        helpForRadioButtons(25,25,100)
+        helpForRadioButtons(25,25,100,result)
         }
         else {
           this.checked = false
@@ -483,26 +531,25 @@
       })
     }
     
-    function helpForRadioButtons (numRow,numColumn,numNumberBomb) {
+    function helpForRadioButtons (numRow,numColumn,numNumberBomb,check) {
       
         if(!(set.size == 0 & counterBack == numberBomb)) {
           if(flag) {
             gameOver()
           }
         }
-        if(result){
+        if(check){
           row = numRow
-        column = numColumn
-        numberBomb = numNumberBomb
-        flag = true
-        seconds.textContent = '00'
-        minutes.textContent = '00'
-        container.remove()
-        let div = document.createElement('div')
-        body.prepend(div)
-        div.classList.add('container')
-        div.id = 'container'
-        superMegaMainFunc(row,column,numberBomb,div,gameOver,flag,counterForWinner)
+          column = numColumn
+          numberBomb = numNumberBomb
+          seconds.textContent = '00'
+          minutes.textContent = '00'
+          container.remove()
+          let div = document.createElement('div')
+          body.prepend(div)
+          div.classList.add('container')
+          div.id = 'container'
+          superMegaMainFunc(row,column,numberBomb,div,gameOver,counterForWinner)
         }
          else {
           return
@@ -512,10 +559,10 @@
     addRadioButtons()
     
     </script>
-     // доработать открытие пустых ячеек
-     // сделать таблицу рекордов Fokkewolfe1945c? 549193
-     // доработать перезапуск игры
-     // при переходе из незаконченной игры должен возникать другой confirm
-     при нажатии кнопки отмена продолжается переход на новый уровень 
+     // доработать подгрузку рекордов с сервера
+      // слишком много параметров передается в функцию superMegaMainFunc
+      // вместо 10 должна быть бомба
+      // вместо 00 должна быть зачеркнутая бомба
+      // если подрыв картинка взорванной бомбы
 </body>
 </html>
