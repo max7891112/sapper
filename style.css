@@ -7,6 +7,18 @@
 body{
     background-color: #eee;
 }
+.container img{
+    height: 49px;
+    width: 38px;
+    z-index: 5;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.text img {
+    height: 30px;
+    width: 30px;
+}
 .container{
     margin: 50px auto;
     width: max-content;
@@ -30,7 +42,7 @@ td > span{
 }
 .hidden{
     background-color: blanchedalmond;
-    z-index: 2;
+    z-index: 10;
     width: 100%;
     height: 100%;
     position: absolute;
