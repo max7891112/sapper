@@ -5,11 +5,14 @@ let numberBomb = 1 // число бомб
 let gameOver // вынесенная функция для того чтобы можно было из внешнего скрипта объявлять gameOver
 let set // вынесенный сет необходимый для проверки отсутсвия победы во внешнем скрипте
 let counterBack // вынесенный счетчик бомб необходимый для проверки отсутсвия победы во внешнем скрипте
-let counterForWinner = 1
-let result
-let checkGameWon
+let counterForWinner = 1 // счетчик результатов победных игр
+let result // содержит в себе ответ пользователя на вопрос о переходе к следующему уровню
+let checkGameWon = false // есди игра выиграна выставляется этот флаг для беспрепятственного прохода к следующим уровням
+let timerId // таймер для остановки счетчика
+let stopTimer = false // для остановки таймера для паузы
+let gameRun = false // проверка на начало игры
 function superMegaMainFunc(row,column,numberBomb,container) {
-  let timerId // таймер для остановки счетчика
+ 
   set = new Set() // сет для бомб
   let counterForBomb = 0 // счетчик бомб используемый при заполнении таблицы бомбами
   let funcClick // для снятия обработчика клика с ячейки из внешней функции
@@ -149,6 +152,7 @@ addPictureBomb()
   
   gameOver = function () {
     result = confirm('Game over! Do you want to start a new game?') 
+    gameRun = false
     if(result) {
       alert('game restarted') // доработать перезапуск игры 
       clearInterval(timerId)
@@ -192,7 +196,7 @@ addPictureBomb()
   
   function gameWinner(event1,functions1,event2,functions2) {
     alert('Game WON!!! I really congratulate you') // снимаем все обработчики и останавливаем таймер
-
+    gameRun = false
     records.lastElementChild.innerHTML += `${counterForWinner})<span>${minutes.textContent}</span><span>:</span><span>${seconds.textContent}</span><br>`
     counterForWinner++ // пушим время в массив для таблицы рекордов
 
@@ -376,11 +380,13 @@ addPictureBomb()
     let target = event.target.closest('td')
     if(!target) return
     if(!container.contains(target)) return
+    gameRun = true
 
     let counterForSeconds = 0
     let counterForMinutes = 0
 
-    timerId =  setInterval(() => {
+     timerId =  setInterval(() => {
+      if(stopTimer) return
       counterForSeconds++
       if(counterForSeconds < 60) {
 
@@ -469,49 +475,67 @@ addPictureBomb()
 
 superMegaMainFunc(row,column,numberBomb,container)
 
+
+
 function addRadioButtons() {
 
 radio1.addEventListener('click', function() {
-  let result
-  if(!checkGameWon) {
-    result = confirm('if you will change the level game is over. Do you want to do it?')
-  }  
-  if(result || checkGameWon) {
-    helpForRadioButtons(9,9,10)
-  } else {
-    this.checked = false 
-  }
-})
-radio2.addEventListener('click', function() {
-    let result
-    if(!checkGameWon) { // проверка на наличие победы в прошлой игре
-      result = confirm('if you will change the level game is over. Do you want to do it?')
-    }  
-    if(result || checkGameWon) {
-  helpForRadioButtons(16,16,40)
-  }
-  else {
-    this.checked = false
-  }
-})
-radio3.addEventListener('click', function() {
+  if(gameRun) {
     let result
     if(!checkGameWon) {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-  helpForRadioButtons(25,25,100)
+      helpForRadioButtons(9,9,10)
+    } else {
+      this.checked = false 
+    }
+  } else {
+    helpForRadioButtons(9,9,10)
+  }
+ 
+})
+radio2.addEventListener('click', function() {
+  if(gameRun) {
+    let result
+    if(!checkGameWon) { // проверка на наличие победы в прошлой игре
+      result = confirm('if you will change the level game is over. Do you want to do it?')
+    }  
+    if(result || checkGameWon) {
+      helpForRadioButtons(16,16,40)
+    }
+    else {
+      this.checked = false
+    }
+  
+  }  else {
+      helpForRadioButtons(16,16,40)
+    }
+})
+radio3.addEventListener('click', function() {
+  if(gameRun) {
+    let result
+    if(!checkGameWon) {
+      result = confirm('if you will change the level game is over. Do you want to do it?')
+    }  
+    if(result || checkGameWon) {
+      helpForRadioButtons(25,25,100)
+    }  else {
+        this.checked = false
+    }
   }
   else {
-    this.checked = false
+    helpForRadioButtons(25,25,100)
   }
+    
 })
 }
 
 function helpForRadioButtons (numRow,numColumn,numNumberBomb) {
-
-  if(!(set.size == 0 & counterBack == numberBomb)) {
-    gameOver()
+  if(gameRun) {
+    if(!(set.size == 0 & counterBack == numberBomb)) {
+      gameOver()
+    }
   }
     row = numRow
     column = numColumn
@@ -527,3 +551,23 @@ function helpForRadioButtons (numRow,numColumn,numNumberBomb) {
     superMegaMainFunc(row,column,numberBomb,div)
 }
 addRadioButtons()
+
+function addPause() {
+  let counterPause = 0
+  document.addEventListener('keydown', function(event) {
+    if(event.code == 'Space') {
+      counterPause++
+      if(counterPause % 2 == 1) {
+      let div = document.createElement('div')
+      div.classList.add('pause')
+      body.append(div)
+      stopTimer = true
+      } else {
+        body.lastElementChild.remove()
+        stopTimer = false
+      }
+    }
+  })
+}
+addPause()
+
