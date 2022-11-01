@@ -11,6 +11,7 @@ let checkGameWon = false // есди игра выиграна выставля�
 let timerId // таймер для остановки счетчика
 let stopTimer = false // для остановки таймера для паузы
 let gameRun = false // проверка на начало игры
+let audio
 function superMegaMainFunc(row,column,numberBomb,container) {
  
   set = new Set() // сет для бомб
@@ -151,6 +152,7 @@ addPictureBomb()
   createHiddenElement()
   
   gameOver = function () {
+    removeAudio()
     result = confirm('Game over! Do you want to start a new game?') 
     gameRun = false
     if(result) {
@@ -195,6 +197,7 @@ addPictureBomb()
   
   
   function gameWinner(event1,functions1,event2,functions2) {
+    removeAudio()
     alert('Game WON!!! I really congratulate you') // снимаем все обработчики и останавливаем таймер
     gameRun = false
     records.lastElementChild.innerHTML += `${counterForWinner})<span>${minutes.textContent}</span><span>:</span><span>${seconds.textContent}</span><br>`
@@ -215,7 +218,6 @@ addPictureBomb()
       if(target.lastElementChild.classList.contains('bomb')) return // если ячейка помечена как бомба клик не реагирует
       target.lastElementChild.remove() // по клику на ячейку открывается скрывающий элемент
     }
-    
       if(target.textContent == '0') {
         let counterRow = 0
         let counterColumn = 0
@@ -381,7 +383,7 @@ addPictureBomb()
     if(!target) return
     if(!container.contains(target)) return
     gameRun = true
-
+    addAudio()
     let counterForSeconds = 0
     let counterForMinutes = 0
 
@@ -562,12 +564,22 @@ function addPause() {
       div.classList.add('pause')
       body.append(div)
       stopTimer = true
+      removeAudio()
       } else {
         body.lastElementChild.remove()
         stopTimer = false
+        addAudio()
       }
     }
   })
 }
 addPause()
 
+function addAudio() {
+  audio = new Audio('audio/melleCafe.mp3')
+  audio.play() 
+}
+
+function removeAudio() {
+  audio.pause()
+}
