@@ -12,6 +12,7 @@ let timerId // таймер для остановки счетчика
 let stopTimer = false // для остановки таймера для паузы
 let gameRun = false // проверка на начало игры
 let audio // добавление аудио сопровождения
+let idLvl // определитель уровня сложности для подгрузки результатов
 function superMegaMainFunc(row,column,numberBomb,container) {
  
   set = new Set() // сет для бомб
@@ -201,7 +202,18 @@ addPictureBomb()
   
   function gameWinner(event1,functions1,event2,functions2) {
     removeAudioFight()
-    localStorageUtil(minutes.textContent, seconds.textContent)
+    if(trs.length == 9) {
+      idLvl = 'easy'
+      localStorageUtil(minutes.textContent, seconds.textContent,idLvl)
+    }
+    if(trs.length == 16) {
+      idLvl = 'medium'
+      localStorageUtil(minutes.textContent, seconds.textContent,idLvl)
+    }
+    if(trs.length == 25) {
+      idLvl = 'hard'
+      localStorageUtil(minutes.textContent, seconds.textContent,idLvl)
+    }
     alert('Game WON!!! I really congratulate you') // снимаем все обработчики и останавливаем таймер
     gameRun = false
     counterForWinner++ // пушим время в массив для таблицы рекордов
@@ -485,52 +497,67 @@ superMegaMainFunc(row,column,numberBomb,container)
 function addRadioButtons() {
 
 radio1.addEventListener('click', function() {
+  records.lastElementChild.innerHTML = ''
+  counterForWinner = 1
+  idLvl = 'easy'
+  addPreviosRecords(idLvl)
   if(gameRun) {
+    
     let result
     if(!checkGameWon) {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(9,9,10)
+      helpForRadioButtons(9,9,1) // 10
+
     } else {
       this.checked = false 
     }
   } else {
-    helpForRadioButtons(9,9,10)
+    helpForRadioButtons(9,9,1)
+
   }
  
 })
 radio2.addEventListener('click', function() {
+  records.lastElementChild.innerHTML = ''
+  counterForWinner = 1
+  idLvl = 'medium'
+  addPreviosRecords(idLvl)
   if(gameRun) {
     let result
     if(!checkGameWon) { // проверка на наличие победы в прошлой игре
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(16,16,40)
+      helpForRadioButtons(16,16,1) // 40
     }
     else {
       this.checked = false
     }
   
   }  else {
-      helpForRadioButtons(16,16,40)
+      helpForRadioButtons(16,16,1)
     }
 })
 radio3.addEventListener('click', function() {
+  records.lastElementChild.innerHTML = ''
+  counterForWinner = 1
+  idLvl = 'hard'
+  addPreviosRecords(idLvl)
   if(gameRun) {
     let result
     if(!checkGameWon) {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(25,25,100)
+      helpForRadioButtons(25,25,1) // 100
     }  else {
         this.checked = false
     }
   }
   else {
-    helpForRadioButtons(25,25,100)
+    helpForRadioButtons(25,25,1)
   }
     
 })
@@ -588,11 +615,11 @@ function removeAudioFight() {
   audio.pause()
 }
 
-function localStorageUtil(minutes, seconds) {
+function localStorageUtil(minutes, seconds,id) {
   let data = []
 
    function getRecords() {
-    const recordsLocalStorage = localStorage.getItem('records')
+    const recordsLocalStorage = localStorage.getItem(id)
     if(recordsLocalStorage) {
         return JSON.parse(recordsLocalStorage)
     } 
@@ -622,11 +649,12 @@ function localStorageUtil(minutes, seconds) {
     if(data.length > 16) {
       data.splice(16,2)
     } else {
+      counterForWinner = 1
+      records.lastElementChild.innerHTML = ''
       let result = confirm('do you want to add a new record?')
       if(result) {
-        localStorage.setItem('records',JSON.stringify(data))
-        records.lastElementChild.innerHTML += `${counterForWinner})<span>${minutes}</span><span>:</span><span>${seconds}</span><br>`
-       
+        localStorage.setItem(id,JSON.stringify(data))
+        addPreviosRecords(idLvl)
       }
       
     }
@@ -636,17 +664,14 @@ function localStorageUtil(minutes, seconds) {
 
 }
 
-function addPreviosRecords() {
-  let data = JSON.parse(localStorage.getItem('records'))
+function addPreviosRecords(id) {
+  let data = JSON.parse(localStorage.getItem(id))
   if(data) {
     let result = []
     const length = 2
     while(data.length) {
         result.push(data.splice(0,length))
     } 
-    
-
-
 
     function flat(arr) {
 
@@ -666,11 +691,26 @@ function addPreviosRecords() {
         }
         return tmp
     }
+
+    function sortArr (arr) {
+      // ©superBek
+        let data = arr.sort ( function (a, b) {
+            if (a < b) {
+                return -1;
+              };
     
+              if (a > b) {
+                return 1;
+              };
+    
+              return 0;
+            });
+            
+        return data;
+    }
+
     result = sortArr(result)
     result = flat(result)
-    
-    console.log(set)
     for(let i = 0; i < result.length;) {
       if(i == 0) {
         records.lastElementChild.innerHTML += `${counterForWinner})<span>${result[i]}</span>:<span>${result[i + 1]}</span><br>`
@@ -680,21 +720,5 @@ function addPreviosRecords() {
     }
   }
 }
-addPreviosRecords()
+addPreviosRecords(idLvl)
 
-function sortArr (arr) {
-  // ©superBek
-    let data = arr.sort ( function (a, b) {
-        if (a < b) {
-            return -1;
-          };
-
-          if (a > b) {
-            return 1;
-          };
-
-          return 0;
-        });
-        
-    return data;
-};
