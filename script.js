@@ -11,7 +11,7 @@ let checkGameWon = false // есди игра выиграна выставля�
 let timerId // таймер для остановки счетчика
 let stopTimer = false // для остановки таймера для паузы
 let gameRun = false // проверка на начало игры
-let audio
+let audio // добавление аудио сопровождения
 function superMegaMainFunc(row,column,numberBomb,container) {
  
   set = new Set() // сет для бомб
@@ -19,6 +19,9 @@ function superMegaMainFunc(row,column,numberBomb,container) {
   let funcClick // для снятия обработчика клика с ячейки из внешней функции
   let funcContextMenu //для снятия обработчика правой кнопкой мыши с ячейки из внешней функции
   counterBack = 0
+
+
+
   function createTable(row,column,container) {
     let table = document.createElement('table') // создаем таблицу
     for(let i = 0; i < row; i++) {
@@ -152,7 +155,7 @@ addPictureBomb()
   createHiddenElement()
   
   gameOver = function () {
-    removeAudio()
+    removeAudioFight()
     result = confirm('Game over! Do you want to start a new game?') 
     gameRun = false
     if(result) {
@@ -197,14 +200,16 @@ addPictureBomb()
   
   
   function gameWinner(event1,functions1,event2,functions2) {
-    removeAudio()
+    removeAudioFight()
+    localStorageUtil(minutes.textContent, seconds.textContent)
     alert('Game WON!!! I really congratulate you') // снимаем все обработчики и останавливаем таймер
     gameRun = false
-    records.lastElementChild.innerHTML += `${counterForWinner})<span>${minutes.textContent}</span><span>:</span><span>${seconds.textContent}</span><br>`
     counterForWinner++ // пушим время в массив для таблицы рекордов
 
     document.removeEventListener(event1, functions1)
     document.removeEventListener(event2, functions2)
+
+
     clearInterval(timerId)
     checkGameWon = true
   }
@@ -370,8 +375,6 @@ addPictureBomb()
         bomb.src = 'bombImg\\kissBomb.png'
         target.append(bomb)
         gameOver()
-        
-
       }
     })
   }
@@ -383,7 +386,7 @@ addPictureBomb()
     if(!target) return
     if(!container.contains(target)) return
     gameRun = true
-    addAudio()
+    addAudioFight()
     let counterForSeconds = 0
     let counterForMinutes = 0
 
@@ -564,22 +567,134 @@ function addPause() {
       div.classList.add('pause')
       body.append(div)
       stopTimer = true
-      removeAudio()
+      removeAudioFight()
       } else {
         body.lastElementChild.remove()
         stopTimer = false
-        addAudio()
+        addAudioFight()
       }
     }
   })
 }
 addPause()
 
-function addAudio() {
+function addAudioFight() {
   audio = new Audio('audio/melleCafe.mp3')
+  audio.autoplay = true
   audio.play() 
 }
 
-function removeAudio() {
+function removeAudioFight() {
   audio.pause()
 }
+
+function localStorageUtil(minutes, seconds) {
+  let data = []
+
+   function getRecords() {
+    const recordsLocalStorage = localStorage.getItem('records')
+    if(recordsLocalStorage) {
+        return JSON.parse(recordsLocalStorage)
+    } 
+    else{
+        return []
+    }
+  }
+
+  function putRecords() {
+    if(getRecords()) {
+      data = getRecords()
+    }
+    for(let i = 0; i < data.length; i++) {
+      if(i % 2 == 0) {
+
+        if(data[i] == minutes) {
+
+          if(data[i + 1] == seconds) {
+            return alert('this record already exist, you can try to do it one more time and maybe you`ll be lucky')
+          }
+
+        }
+
+      }
+    }
+    data.push(minutes,seconds)
+    if(data.length > 16) {
+      data.splice(16,2)
+    } else {
+      let result = confirm('do you want to add a new record?')
+      if(result) {
+        localStorage.setItem('records',JSON.stringify(data))
+        records.lastElementChild.innerHTML += `${counterForWinner})<span>${minutes}</span><span>:</span><span>${seconds}</span><br>`
+       
+      }
+      
+    }
+    
+  }
+  putRecords()
+
+}
+
+function addPreviosRecords() {
+  let data = JSON.parse(localStorage.getItem('records'))
+  if(data) {
+    let result = []
+    const length = 2
+    while(data.length) {
+        result.push(data.splice(0,length))
+    } 
+    
+
+
+
+    function flat(arr) {
+
+    let tmp = []
+
+        for(let i = 0; i < arr.length;i++) {
+
+            if(typeof arr[i] == 'object' ) {
+                for(let j = 0; j < arr[i].length; j++) {
+                    tmp.push(flat(arr[i])[j])
+                }
+            } else {
+                tmp.push(arr[i]) 
+
+            }
+            
+        }
+        return tmp
+    }
+    
+    result = sortArr(result)
+    result = flat(result)
+    
+    console.log(set)
+    for(let i = 0; i < result.length;) {
+      if(i == 0) {
+        records.lastElementChild.innerHTML += `${counterForWinner})<span>${result[i]}</span>:<span>${result[i + 1]}</span><br>`
+        result.splice(i,2)
+        counterForWinner++
+      }
+    }
+  }
+}
+addPreviosRecords()
+
+function sortArr (arr) {
+  // ©superBek
+    let data = arr.sort ( function (a, b) {
+        if (a < b) {
+            return -1;
+          };
+
+          if (a > b) {
+            return 1;
+          };
+
+          return 0;
+        });
+        
+    return data;
+};
