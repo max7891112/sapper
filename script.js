@@ -12,16 +12,15 @@ let timerId // таймер для остановки счетчика
 let stopTimer = false // для остановки таймера для паузы
 let gameRun = false // проверка на начало игры
 let audio // добавление аудио сопровождения
-let idLvl // определитель уровня сложности для подгрузки результатов
+let idLvl = [] // определитель уровня сложности для подгрузки результатов
+let num = 0
+let trs
 function superMegaMainFunc(row,column,numberBomb,container) {
- 
   set = new Set() // сет для бомб
   let counterForBomb = 0 // счетчик бомб используемый при заполнении таблицы бомбами
   let funcClick // для снятия обработчика клика с ячейки из внешней функции
   let funcContextMenu //для снятия обработчика правой кнопкой мыши с ячейки из внешней функции
   counterBack = 0
-
-
 
   function createTable(row,column,container) {
     let table = document.createElement('table') // создаем таблицу
@@ -38,7 +37,7 @@ function superMegaMainFunc(row,column,numberBomb,container) {
   createTable(row, column ,container)
 
   let tds = document.querySelectorAll('td')
-  let trs = document.querySelectorAll('tr')
+  trs = document.querySelectorAll('tr')
 
   function random(min, max) {
   let rand =  (((min - 0.5) + Math.random() * (max - min + 0.5)).toFixed()) // вспомогательная функция для рандомного значения
@@ -436,14 +435,16 @@ addPictureBomb()
     if(!target) return
     if(!container.contains(target)) return
 
-  
-    if(target.lastElementChild.classList.contains('bomb')) { // обратный счетчик для бомб
-      target.lastElementChild.classList.remove('bomb')
-      counterBack--
-    } else {
-      target.lastElementChild.classList.add('bomb')
-      counterBack++
+    if(target.lastElementChild) {
+      if(target.lastElementChild.classList.contains('bomb')) { // обратный счетчик для бомб
+        target.lastElementChild.classList.remove('bomb')
+        counterBack--
+      } else {
+        target.lastElementChild.classList.add('bomb')
+        counterBack++
+      }
     }
+      
 
     event.preventDefault() // убрать всплытие стандартного контекстного меню
     if(target.textContent == '10') {  // если мина была выбрана неправильно можно отменить действие и поменять флаги только если есть запас флагов
@@ -470,7 +471,7 @@ addPictureBomb()
       set.add(td)
     }
   }
-  console.log(set)
+
 
   spanForCounterback.textContent = counterBack // добавление счетчика бомб в форму
   spanForNumberBomb.textContent = numberBomb // добавление изначального количества бомб в форму
@@ -478,7 +479,7 @@ addPictureBomb()
   addBombToSet()
   
   function addColorForNumber() {
-    let arr = ['black','blue','green','grown','red','aqua','blueviolet', 'coral', 'darkorange']
+    let arr = ['rgb(187, 180, 180)','blue','green','grown','red','aqua','blueviolet', 'coral', 'darkorange']
     for(let td of tds) {
       for(let i = 0; i < arr.length; i++) {
         if(td.textContent == `${i}`) {
@@ -492,7 +493,7 @@ addPictureBomb()
 
 superMegaMainFunc(row,column,numberBomb,container)
 
-
+addRestart()
 
 function addRadioButtons() {
 
@@ -508,7 +509,7 @@ radio1.addEventListener('click', function() {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(9,9,1) // 10
+      helpForRadioButtons(9,9,1)
 
     } else {
       this.checked = false 
@@ -530,14 +531,14 @@ radio2.addEventListener('click', function() {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(16,16,1) // 40
+      helpForRadioButtons(16,16,4)
     }
     else {
       this.checked = false
     }
   
   }  else {
-      helpForRadioButtons(16,16,1)
+      helpForRadioButtons(16,16,4)
     }
 })
 radio3.addEventListener('click', function() {
@@ -551,13 +552,13 @@ radio3.addEventListener('click', function() {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(25,25,1) // 100
+      helpForRadioButtons(25,25,10)
     }  else {
         this.checked = false
     }
   }
   else {
-    helpForRadioButtons(25,25,1)
+    helpForRadioButtons(25,25,10)
   }
     
 })
@@ -722,3 +723,17 @@ function addPreviosRecords(id) {
 }
 addPreviosRecords(idLvl)
 
+
+function addRestart() {
+  buttonForRestart.addEventListener('click', function() {
+    if(trs.length == 9) {
+      helpForRadioButtons(9,9,10)
+    }
+    if(trs.length == 16) {
+      helpForRadioButtons(16,16,40)
+    }
+    if(trs.length == 25) {
+      helpForRadioButtons(25,25,100)
+    }
+  })
+}

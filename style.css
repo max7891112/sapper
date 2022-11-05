@@ -7,8 +7,8 @@ body{
     background-color: #eee;
 }
 .container img{
-    height: 49px;
-    width: 38px;
+    height: 100%;
+    width: 100%;
     z-index: 5;
     position: absolute;
     left: 0;
@@ -95,7 +95,8 @@ td > span{
 
 }
 .record > h3{
-    margin:10px 15px 15px 10px;
+    text-align: center;
+    padding-top: 10px;
 }
 .pause{
     width: 100%;
@@ -108,4 +109,17 @@ td > span{
 }
 .hiddenMusic{
     display: none;
+}
+
+.restart{
+    width: 200px;
+    background-color: blanchedalmond;
+    position: fixed;
+    top: 230px;
+    left: 0;
+    border: 2px solid black;
+    margin: 10px;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
 }

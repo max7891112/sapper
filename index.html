@@ -1,11 +1,14 @@
-<!DOCTYPE HTML>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miner</title>
   <link rel= "stylesheet" href= "style.css">
+  <link rel="icon" type="img/png" href="bombImg/bomb.png">
   <bgsound src="audio/melleCafe.mp3" loop="1" volume="1000"></bgsound>
 </head>
-
 <body id="body">
   
   <div id="container" class="container"></div>
@@ -29,6 +32,9 @@
     <h3>Таблица рекордов</h3>
     <p></p>
   </div>
+
+  <button id="buttonForRestart" class="restart">Перезапустить игру</button>
+
   <div id="lvl">
     <form action="#" class="blok-form">
       <div class="block-form__title">Уровень сложности</div>
@@ -51,6 +57,10 @@
     </form>
   </div>
       // адаптив
+      // при рестарте незаконченной игры по нажатию на отмена игра все равно перезапускается
+      // если больше 7 рекордов то новые рекорды не добавляются хотя должны удаляться старые рекорды
+      // если нет ни одного рекорда игра не запускается
       <script src="script.js"></script>
 </body>
 </html>
+
