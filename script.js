@@ -1,7 +1,7 @@
 'use strict'
 let row = 16 // количество рядов в таблице
 let column = 16 // количество колонок в таблице
-let numberBomb = 1 // число бомб
+let numberBomb = 40 // число бомб
 let gameOver // вынесенная функция для того чтобы можно было из внешнего скрипта объявлять gameOver
 let set // вынесенный сет необходимый для проверки отсутсвия победы во внешнем скрипте
 let counterBack // вынесенный счетчик бомб необходимый для проверки отсутсвия победы во внешнем скрипте
@@ -12,8 +12,7 @@ let timerId // таймер для остановки счетчика
 let stopTimer = false // для остановки таймера для паузы
 let gameRun = false // проверка на начало игры
 let audio // добавление аудио сопровождения
-let idLvl = [] // определитель уровня сложности для подгрузки результатов
-let num = 0
+let idLvl // определитель уровня сложности для подгрузки результатов
 let trs
 function superMegaMainFunc(row,column,numberBomb,container) {
   set = new Set() // сет для бомб
@@ -191,7 +190,6 @@ addPictureBomb()
         }
       }
     }
-    
     document.removeEventListener('click', funcClick) // снимаем все обработчики и останавливаем таймер
     document.removeEventListener('contextmenu', funcContextMenu)
     clearInterval(timerId)
@@ -509,17 +507,18 @@ radio1.addEventListener('click', function() {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(9,9,1)
+      helpForRadioButtons(9,9,10)
 
     } else {
       this.checked = false 
     }
   } else {
-    helpForRadioButtons(9,9,1)
+    helpForRadioButtons(9,9,10)
 
   }
  
 })
+radio2.checked = true
 radio2.addEventListener('click', function() {
   records.lastElementChild.innerHTML = ''
   counterForWinner = 1
@@ -531,14 +530,14 @@ radio2.addEventListener('click', function() {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(16,16,4)
+      helpForRadioButtons(16,16,40)
     }
     else {
       this.checked = false
     }
   
   }  else {
-      helpForRadioButtons(16,16,4)
+      helpForRadioButtons(16,16,40)
     }
 })
 radio3.addEventListener('click', function() {
@@ -552,13 +551,13 @@ radio3.addEventListener('click', function() {
       result = confirm('if you will change the level game is over. Do you want to do it?')
     }  
     if(result || checkGameWon) {
-      helpForRadioButtons(25,25,10)
+      helpForRadioButtons(25,25,100)
     }  else {
         this.checked = false
     }
   }
   else {
-    helpForRadioButtons(25,25,10)
+    helpForRadioButtons(25,25,100)
   }
     
 })
@@ -570,6 +569,7 @@ function helpForRadioButtons (numRow,numColumn,numNumberBomb) {
       gameOver()
     }
   }
+  
     row = numRow
     column = numColumn
     numberBomb = numNumberBomb
@@ -582,6 +582,8 @@ function helpForRadioButtons (numRow,numColumn,numNumberBomb) {
     div.classList.add('container')
     div.id = 'container'
     superMegaMainFunc(row,column,numberBomb,div)
+  
+    
 }
 addRadioButtons()
 
@@ -608,7 +610,7 @@ addPause()
 
 function addAudioFight() {
   audio = new Audio('audio/melleCafe.mp3')
-  audio.autoplay = true
+  audio.loop = true
   audio.play() 
 }
 
@@ -725,15 +727,33 @@ addPreviosRecords(idLvl)
 
 
 function addRestart() {
+  function innerRestart(numRow,numColumn,numNumberBomb) {
+    removeAudioFight()
+    clearInterval(timerId)
+    gameRun = false
+    row = numRow
+    column = numColumn
+    numberBomb = numNumberBomb
+    checkGameWon = false
+    seconds.textContent = '00'
+    minutes.textContent = '00'
+    container.remove()
+    let div = document.createElement('div')
+    body.prepend(div)
+    div.classList.add('container')
+    div.id = 'container'
+    superMegaMainFunc(row,column,numberBomb,div)
+  }
+
   buttonForRestart.addEventListener('click', function() {
     if(trs.length == 9) {
-      helpForRadioButtons(9,9,10)
+      innerRestart(9,9,1)
     }
     if(trs.length == 16) {
-      helpForRadioButtons(16,16,40)
+      innerRestart(16,16,1)
     }
     if(trs.length == 25) {
-      helpForRadioButtons(25,25,100)
+      innerRestart(25,25,1)
     }
   })
 }
