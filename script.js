@@ -1,7 +1,7 @@
 'use strict'
 let row = 16 // количество рядов в таблице
 let column = 16 // количество колонок в таблице
-let numberBomb = 40 // число бомб
+let numberBomb = 1 // число бомб
 let gameOver // вынесенная функция для того чтобы можно было из внешнего скрипта объявлять gameOver
 let set // вынесенный сет необходимый для проверки отсутсвия победы во внешнем скрипте
 let counterBack // вынесенный счетчик бомб необходимый для проверки отсутсвия победы во внешнем скрипте
@@ -51,7 +51,7 @@ function superMegaMainFunc(row,column,numberBomb,container) {
       }
 
       let probability = random(1,100)  // возвращает псевдо случайное число от 1 до 100
-      if(probability < 5) { // вероятность появления бомбы в ячейке 10%
+      if(probability < 5) { // вероятность появления бомбы в ячейке 5%
         if(td.lastElementChild) continue // если уже есть бомба пропускаем такую ячейку
         td.innerHTML = '<span>10</span>' // добавляем бомбу
         counterForBomb++ // увеличиваем счетчик
@@ -621,7 +621,7 @@ function removeAudioFight() {
 function localStorageUtil(minutes, seconds,id) {
   let data = []
 
-   function getRecords() {
+   function getRecords() { // получаем данные из локального хранилища
     const recordsLocalStorage = localStorage.getItem(id)
     if(recordsLocalStorage) {
         return JSON.parse(recordsLocalStorage)
@@ -635,7 +635,7 @@ function localStorageUtil(minutes, seconds,id) {
     if(getRecords()) {
       data = getRecords()
     }
-    for(let i = 0; i < data.length; i++) {
+    for(let i = 0; i < data.length; i++) { // проверка на наличие в данных такого же результата победы
       if(i % 2 == 0) {
 
         if(data[i] == minutes) {
@@ -648,10 +648,21 @@ function localStorageUtil(minutes, seconds,id) {
 
       }
     }
-    data.push(minutes,seconds)
-    if(data.length > 16) {
-      data.splice(16,2)
-    } else {
+    data.push(minutes,seconds) // заливаем полученные данные в дата
+    if(data.length > 16) { // ограничение для того чтобы таблица рекордов не переполнялась
+     
+      counterForWinner = 1
+      records.lastElementChild.innerHTML = ''
+      let result = confirm('do you want to add a new record?')
+      if(result) {
+        data = devideToDifferentArr(data,2) // тоже самое что и в addPreviousrecords
+        data = sortArr(data)
+        data = flat(data)
+        data.splice(16,2) // удаляем самый худший рекорд
+        localStorage.setItem(id,JSON.stringify(data)) // заливаем данные в локальное хранилище
+        addPreviosRecords(idLvl) // обновляем данные в таблице рекордов
+      }
+    } else { // иначе проделываем все то же самое но не удаляем последний элемент
       counterForWinner = 1
       records.lastElementChild.innerHTML = ''
       let result = confirm('do you want to add a new record?')
@@ -668,56 +679,16 @@ function localStorageUtil(minutes, seconds,id) {
 }
 
 function addPreviosRecords(id) {
-  let data = JSON.parse(localStorage.getItem(id))
+  let data = JSON.parse(localStorage.getItem(id)) // получаем данные из локального хранилища
   if(data) {
-    let result = []
-    const length = 2
-    while(data.length) {
-        result.push(data.splice(0,length))
-    } 
+    data = devideToDifferentArr(data,2) // разбиваем данные из дата на подмассивы по два элемента
+    data = sortArr(data) // сортируем данный массив
+    data = flat(data) // раскрываем массив
 
-    function flat(arr) {
-
-    let tmp = []
-
-        for(let i = 0; i < arr.length;i++) {
-
-            if(typeof arr[i] == 'object' ) {
-                for(let j = 0; j < arr[i].length; j++) {
-                    tmp.push(flat(arr[i])[j])
-                }
-            } else {
-                tmp.push(arr[i]) 
-
-            }
-            
-        }
-        return tmp
-    }
-
-    function sortArr (arr) {
-      // ©superBek
-        let data = arr.sort ( function (a, b) {
-            if (a < b) {
-                return -1;
-              };
-    
-              if (a > b) {
-                return 1;
-              };
-    
-              return 0;
-            });
-            
-        return data;
-    }
-
-    result = sortArr(result)
-    result = flat(result)
-    for(let i = 0; i < result.length;) {
+    for(let i = 0; i < data.length;) {  // заливаем данные в таблицу рекордов попутно очищая дата
       if(i == 0) {
-        records.lastElementChild.innerHTML += `${counterForWinner})<span>${result[i]}</span>:<span>${result[i + 1]}</span><br>`
-        result.splice(i,2)
+        records.lastElementChild.innerHTML += `${counterForWinner})<span>${data[i]}</span>:<span>${data[i + 1]}</span><br>`
+        data.splice(i,2)
         counterForWinner++
       }
     }
@@ -725,6 +696,55 @@ function addPreviosRecords(id) {
 }
 addPreviosRecords(idLvl)
 
+
+function devideToDifferentArr(arr,length) {
+  let cloneArr = []
+  let arrResult = []
+  for(let elem of arr) {
+    cloneArr.push(elem)
+  }
+  while(cloneArr.length) {
+    arrResult.push(cloneArr.splice(0,length))
+} 
+  arr = arrResult
+  return arr
+}
+
+function sortArr (arr) {
+  // ©superBek
+    let innerArr = arr.sort ( function (a, b) {
+        if (a < b) {
+            return -1;
+          };
+
+          if (a > b) {
+            return 1;
+          };
+
+          return 0;
+        });
+        
+    return innerArr;
+}
+
+function flat(arr) {
+
+  let tmp = []
+
+      for(let i = 0; i < arr.length;i++) {
+
+          if(typeof arr[i] == 'object' ) {
+              for(let j = 0; j < arr[i].length; j++) {
+                  tmp.push(flat(arr[i])[j])
+              }
+          } else {
+              tmp.push(arr[i]) 
+
+          }
+          
+      }
+      return tmp
+  }
 
 function addRestart() {
   function innerRestart(numRow,numColumn,numNumberBomb) {
@@ -747,13 +767,13 @@ function addRestart() {
 
   buttonForRestart.addEventListener('click', function() {
     if(trs.length == 9) {
-      innerRestart(9,9,1)
+      innerRestart(9,9,10)
     }
     if(trs.length == 16) {
-      innerRestart(16,16,1)
+      innerRestart(16,16,40)
     }
     if(trs.length == 25) {
-      innerRestart(25,25,1)
+      innerRestart(25,25,100)
     }
   })
 }
