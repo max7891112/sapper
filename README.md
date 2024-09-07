@@ -1,2 +1,2 @@
-# miner
-game miner in A - test
+# sapper
+game sapper in stable version with some extraordinary features
